@@ -4,12 +4,13 @@ public class cameraController : MonoBehaviour
 {
 
     [SerializeField] float sens = 200f;
-    [SerializeField] float rollSpeed = 1f;
+    [SerializeField] float rollSpeed;
     [SerializeField] bool invertY = false;
 
     float camRotX = 0f;
     float camRotY = 0f;
-    float rollRot = 0f;
+
+    public Transform shipTransform;
 
     void Start()
     {
@@ -29,11 +30,8 @@ public class cameraController : MonoBehaviour
         else
             camRotX -= mouseY;
 
-        float rollInput = 0f;
-        if (Input.GetKey(KeyCode.E)) rollInput -= 0.5f;
-        if (Input.GetKey(KeyCode.Q)) rollInput += 0.5f;
-        rollRot += rollInput * rollSpeed * Time.deltaTime;
+        float currentRoll = transform.parent.localRotation.eulerAngles.z;
 
-        transform.parent.localRotation = Quaternion.Euler(camRotX, camRotY, rollRot);
+        transform.parent.localRotation = Quaternion.Euler(camRotX, camRotY, currentRoll);
     }
 }

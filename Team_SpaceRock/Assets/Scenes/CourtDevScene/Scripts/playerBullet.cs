@@ -3,11 +3,18 @@ using UnityEngine;
 public class Projectile : MonoBehaviour
 {
     public float lifetime = 5f;
+    public int damage;
+
     public GameObject player;
 
     void Start()
     {
         Destroy(gameObject, lifetime);
+    }
+
+    public void Initialize(int dmg)
+    {
+        damage = dmg;
     }
 
     void OnTriggerEnter(Collider other)
@@ -17,7 +24,12 @@ public class Projectile : MonoBehaviour
         if (dmg != null)
         {
 
-            dmg.takeDamage(1);
+            dmg.takeDamage(damage);
+            Destroy(gameObject);
+
+        }
+        else if (other.gameObject.layer == LayerMask.NameToLayer("Asteroid"))
+        {
 
             Destroy(gameObject);
 

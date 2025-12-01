@@ -7,13 +7,14 @@ public class playerController : MonoBehaviour
     [SerializeField] CharacterController controller;
 
     [Header("----- Stats -----")]
-    [Range(1, 5)] [SerializeField] int lives;
+    [Range(1, 5)][SerializeField] int lives;
 
     [SerializeField] float moveSpeed = 10f;
     [SerializeField] float acceleration = 5f;
     [SerializeField] float deceleration = 10f;
-    [SerializeField] int rollSpeed;
+    [SerializeField] float rollSpeed = 90f;
 
+    [Header("----- Dash -----")]
     [SerializeField] float dashSpeed = 25f;
     [SerializeField] float dashDuration = 0.25f;
     [SerializeField] float dashCooldown = 5f;
@@ -22,36 +23,33 @@ public class playerController : MonoBehaviour
     float dashTimer = 0f;
     float dashCooldownTimer = 0f;
 
-
     [Header("----- Guns -----")]
     [SerializeField] int shootDamage;
-    [SerializeField] int shootDistance; //seconds
     [SerializeField] float shootRate;
     float shootTimer;
 
     public GameObject Bullet;
-    public Transform firePoint;
-    public float projectileSpeed;
+    public Transform RightFirePoint;
+    public Transform LeftFirePoint;
+    bool fireSwitch = true;
 
-    int livesOrig;
+    public float projectileSpeed;
 
     Vector3 currentVelocity;
     Vector3 inputDir;
 
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
-    {
-        livesOrig = lives;
-    }
+    float rollAngle = 0f;  // <<< persistent roll
 
-    // Update is called once per frame
     void Update()
     {
         movement();
-        rotation();
         dash();
+        //rotation();
     }
 
+    // ---------------------------------------
+    // MOVEMENT
+    // ---------------------------------------
     void movement()
     {
         shootTimer += Time.deltaTime;
@@ -72,6 +70,13 @@ public class playerController : MonoBehaviour
 
         if (inputDir.magnitude > 1f)
             inputDir.Normalize();
+
+        // If dashing, ignore acceleration/deceleration
+        if (isDashing)
+        {
+            controller.Move(currentVelocity * Time.deltaTime);
+            return;
+        }
 
         Vector3 targetVelocity = inputDir * moveSpeed;
 
@@ -95,25 +100,38 @@ public class playerController : MonoBehaviour
         controller.Move(currentVelocity * Time.deltaTime);
     }
 
+    // ---------------------------------------
+    // ROTATION (ROLL)
+    // ---------------------------------------
     void rotation()
     {
         float rollInput = 0f;
-        if (Input.GetKey(KeyCode.Q)) rollInput -= 1f;
-        if (Input.GetKey(KeyCode.E)) rollInput += 1f;
 
-        transform.Rotate(Vector3.forward * rollInput * rollSpeed * Time.deltaTime, Space.Self);
+        if (Input.GetKey(KeyCode.Q)) rollInput += 1f;
+        if (Input.GetKey(KeyCode.E)) rollInput -= 1f;
+
+        rollAngle += rollInput * rollSpeed * Time.deltaTime;
+
+        // Apply rotation
+        transform.localRotation = Quaternion.Euler(
+            transform.localRotation.eulerAngles.x,
+            transform.localRotation.eulerAngles.y,
+            rollAngle
+        );
     }
 
+    // ---------------------------------------
+    // DASH
+    // ---------------------------------------
     void dash()
     {
         dashCooldownTimer -= Time.deltaTime;
 
         if (Input.GetKeyDown(KeyCode.LeftShift) && dashCooldownTimer <= 0f)
         {
-            Vector3 dashDir = inputDir;
+            Vector3 dashDir = (inputDir.sqrMagnitude > 0.1f) ? inputDir : transform.forward;
+            dashDir.Normalize();
 
-            dashDir = transform.TransformDirection(dashDir.normalized);
-            
             currentVelocity = dashDir * dashSpeed;
 
             isDashing = true;
@@ -124,27 +142,33 @@ public class playerController : MonoBehaviour
         if (isDashing)
         {
             dashTimer -= Time.deltaTime;
+
             if (dashTimer <= 0f)
             {
                 isDashing = false;
             }
         }
-
-
     }
 
+    // ---------------------------------------
+    // SHOOTING
+    // ---------------------------------------
     void shoot()
     {
         shootTimer = 0;
 
+        Transform firePoint = fireSwitch ? RightFirePoint : LeftFirePoint;
+        fireSwitch = !fireSwitch;
+
         GameObject projectile = Instantiate(Bullet, firePoint.position, firePoint.rotation);
 
-        Rigidbody rb = projectile.GetComponent<Rigidbody>();
-        if (rb != null)
-        {
-            rb.linearVelocity = firePoint.forward * projectileSpeed;
-        }
+        Projectile proj = projectile.GetComponent<Projectile>();
+        proj.Initialize(shootDamage);
 
+        Rigidbody rb = projectile.GetComponent<Rigidbody>();
+
+        if (rb != null)
+            rb.linearVelocity = firePoint.forward * projectileSpeed;
     }
 
 }
