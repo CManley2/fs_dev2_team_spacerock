@@ -8,16 +8,35 @@ public class playerController : MonoBehaviour
 
     [Header("----- Stats -----")]
     [Range(1, 5)] [SerializeField] int lives;
-    [Range(1, 5)][SerializeField] int rollSpeed;
-    [Range(2, 5)] [SerializeField] int dashMod;
 
     [SerializeField] float moveSpeed = 10f;
-    [SerializeField] float acceleration = 8f;
-    [SerializeField] float deceleration = 6f;
+    [SerializeField] float acceleration = 5f;
+    [SerializeField] float deceleration = 10f;
+    [SerializeField] int rollSpeed;
+
+    [SerializeField] float dashSpeed = 25f;
+    [SerializeField] float dashDuration = 0.25f;
+    [SerializeField] float dashCooldown = 5f;
+
+    bool isDashing = false;
+    float dashTimer = 0f;
+    float dashCooldownTimer = 0f;
+
+
+    [Header("----- Guns -----")]
+    [SerializeField] int shootDamage;
+    [SerializeField] int shootDistance; //seconds
+    [SerializeField] float shootRate;
+    float shootTimer;
+
+    public GameObject Bullet;
+    public Transform firePoint;
+    public float projectileSpeed;
 
     int livesOrig;
 
     Vector3 currentVelocity;
+    Vector3 inputDir;
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -30,10 +49,18 @@ public class playerController : MonoBehaviour
     {
         movement();
         rotation();
+        dash();
     }
 
     void movement()
     {
+        shootTimer += Time.deltaTime;
+
+        if (Input.GetButton("Fire1") && shootTimer >= shootRate)
+        {
+            shoot();
+        }
+
         float h = Input.GetAxis("Horizontal");
         float v = Input.GetAxis("Vertical");
 
@@ -41,7 +68,7 @@ public class playerController : MonoBehaviour
         if (Input.GetKey(KeyCode.Space)) u += 1f;
         if (Input.GetKey(KeyCode.LeftControl)) u -= 1f;
 
-        Vector3 inputDir = (transform.right * h) + (transform.up * u) + (transform.forward * v);
+        inputDir = (transform.right * h) + (transform.up * u) + (transform.forward * v);
 
         if (inputDir.magnitude > 1f)
             inputDir.Normalize();
@@ -75,6 +102,49 @@ public class playerController : MonoBehaviour
         if (Input.GetKey(KeyCode.E)) rollInput += 1f;
 
         transform.Rotate(Vector3.forward * rollInput * rollSpeed * Time.deltaTime, Space.Self);
+    }
+
+    void dash()
+    {
+        dashCooldownTimer -= Time.deltaTime;
+
+        if (Input.GetKeyDown(KeyCode.LeftShift) && dashCooldownTimer <= 0f)
+        {
+            Vector3 dashDir = inputDir;
+
+            dashDir = transform.TransformDirection(dashDir.normalized);
+            
+            currentVelocity = dashDir * dashSpeed;
+
+            isDashing = true;
+            dashTimer = dashDuration;
+            dashCooldownTimer = dashCooldown;
+        }
+
+        if (isDashing)
+        {
+            dashTimer -= Time.deltaTime;
+            if (dashTimer <= 0f)
+            {
+                isDashing = false;
+            }
+        }
+
+
+    }
+
+    void shoot()
+    {
+        shootTimer = 0;
+
+        GameObject projectile = Instantiate(Bullet, firePoint.position, firePoint.rotation);
+
+        Rigidbody rb = projectile.GetComponent<Rigidbody>();
+        if (rb != null)
+        {
+            rb.linearVelocity = firePoint.forward * projectileSpeed;
+        }
+
     }
 
 }
