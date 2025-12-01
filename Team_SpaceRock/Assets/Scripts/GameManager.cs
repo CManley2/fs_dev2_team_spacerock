@@ -1,4 +1,6 @@
 using UnityEngine;
+using UnityEngine.UI;
+using TMPro;
 
 public class GameManager : MonoBehaviour
 {
@@ -10,6 +12,10 @@ public class GameManager : MonoBehaviour
     [SerializeField] GameObject menuPause;
     [SerializeField] GameObject menuWin;
     [SerializeField] GameObject menuLose;
+
+    [SerializeField] TMP_Text asteroidCounterText;
+
+    int asteroidTotal;
     //player
     public GameObject player;
     public playerController playerScript;
@@ -69,6 +75,17 @@ public class GameManager : MonoBehaviour
     public void UpdateGameGoal(int amount)
     {
         gameGoalCount += amount;
+
+        if (amount > 0)
+        {
+            asteroidTotal += amount;
+        }
+
+        if (asteroidCounterText != null && asteroidTotal > 0)
+        {
+            int destroyed = asteroidTotal - gameGoalCount;
+            asteroidCounterText.text = destroyed + "/" + asteroidTotal;
+        }
 
         if (gameGoalCount <= 0)
         {
