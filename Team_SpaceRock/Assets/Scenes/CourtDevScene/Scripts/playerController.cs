@@ -44,7 +44,7 @@ public class playerController : MonoBehaviour
     {
         movement();
         dash();
-        //rotation();
+        rotation();
     }
 
     // ---------------------------------------
@@ -110,14 +110,13 @@ public class playerController : MonoBehaviour
         if (Input.GetKey(KeyCode.Q)) rollInput += 1f;
         if (Input.GetKey(KeyCode.E)) rollInput -= 1f;
 
-        rollAngle += rollInput * rollSpeed * Time.deltaTime;
+        rollAngle = rollInput * rollSpeed * Time.deltaTime;
+
+        Mathf.Clamp(rollAngle, -45, 45);
 
         // Apply rotation
-        transform.localRotation = Quaternion.Euler(
-            transform.localRotation.eulerAngles.x,
-            transform.localRotation.eulerAngles.y,
-            rollAngle
-        );
+        controller.transform.Rotate(0, 0, rollAngle);
+
     }
 
     // ---------------------------------------
