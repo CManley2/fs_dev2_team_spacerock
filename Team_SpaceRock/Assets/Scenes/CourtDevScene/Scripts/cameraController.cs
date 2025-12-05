@@ -10,10 +10,14 @@ public class cameraController : MonoBehaviour
     float camRotX = 0f;
     float camRotY = 0f;
 
-    public Transform shipTransform;
+    public GameObject player;
+    public CharacterController controller;
 
     void Start()
     {
+        player = GameObject.FindWithTag("Player");
+        controller = player.GetComponent<CharacterController>();
+
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
     }
@@ -30,8 +34,8 @@ public class cameraController : MonoBehaviour
         else
             camRotX -= mouseY;
 
-        float currentRoll = transform.parent.localRotation.eulerAngles.z;
+        float currentRoll = controller.transform.localRotation.eulerAngles.z;
 
-        transform.parent.localRotation = Quaternion.Euler(camRotX, camRotY, currentRoll);
+        controller.transform.localRotation = Quaternion.Euler(camRotX, camRotY, currentRoll);
     }
 }
