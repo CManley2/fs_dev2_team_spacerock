@@ -8,6 +8,7 @@ public class ButtonFunctions : MonoBehaviour
         SceneManager.LoadScene(SceneManager.GetActiveScene().name);
         GameManager.instance.Unpause();
         Time.timeScale = 1;
+        GameManager.instance.score = 0;
     }
 
     public void Quit()

@@ -168,6 +168,10 @@ public class playerController : MonoBehaviour
 
         if (rb != null)
             rb.linearVelocity = firePoint.forward * projectileSpeed;
+
+        //Luke's additions
+        SoundManager.instance.audioSource.pitch = Random.Range(0.8f, 1);
+        SoundManager.instance.audioSource.PlayOneShot(SoundManager.instance.shootSound);
     }
 
 }
