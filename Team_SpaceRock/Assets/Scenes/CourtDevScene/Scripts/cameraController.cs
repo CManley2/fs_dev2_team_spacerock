@@ -2,7 +2,6 @@ using UnityEngine;
 
 public class cameraController : MonoBehaviour
 {
-
     [SerializeField] float sens = 200f;
     [SerializeField] float rollSpeed;
     [SerializeField] bool invertY = false;
@@ -10,20 +9,36 @@ public class cameraController : MonoBehaviour
     float camRotX = 0f;
     float camRotY = 0f;
 
-    public GameObject player;
-    public CharacterController controller;
+    [Header("Player")]
+    [SerializeField] Transform player;
 
     void Start()
     {
-        player = GameObject.FindWithTag("Player");
-        controller = player.GetComponent<CharacterController>();
+        if (player == null)
+        {
+            GameObject p = GameObject.FindWithTag("Player");
+            if (p != null)
+            {
+                player = p.transform;
+            }
+        }
 
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
+
+        if (player != null)
+        {
+            Vector3 euler = player.localRotation.eulerAngles;
+            camRotX = euler.x;
+            camRotY = euler.y;
+        }
     }
 
     void Update()
     {
+        if (player == null)
+            return;
+
         float mouseX = Input.GetAxisRaw("Mouse X") * sens * Time.deltaTime;
         float mouseY = Input.GetAxisRaw("Mouse Y") * sens * Time.deltaTime;
 
@@ -34,8 +49,8 @@ public class cameraController : MonoBehaviour
         else
             camRotX -= mouseY;
 
-        float currentRoll = controller.transform.localRotation.eulerAngles.z;
+        float currentRoll = player.localRotation.eulerAngles.z;
 
-        controller.transform.localRotation = Quaternion.Euler(camRotX, camRotY, currentRoll);
+        player.localRotation = Quaternion.Euler(camRotX, camRotY, currentRoll);
     }
 }

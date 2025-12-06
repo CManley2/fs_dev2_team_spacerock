@@ -1,6 +1,8 @@
 using UnityEngine;
+using UnityEngine.UI;
+using TMPro;
 
-public class playerController : MonoBehaviour
+public class playerController : MonoBehaviour, IDamage
 {
 
     [Header("----- Component -----")]
@@ -18,6 +20,10 @@ public class playerController : MonoBehaviour
 
     int livesOrig;
     int maxLivesOrig;
+
+    [Header("----- Health UI -----")]
+    [SerializeField] Slider healthSlider;
+    [SerializeField] TMP_Text healthText;
 
     [Header("----- Movement -----")]
     [SerializeField] float moveSpeed;
@@ -68,6 +74,18 @@ public class playerController : MonoBehaviour
 
         dashCooldownOrig = dashCooldown;
         maxDashesOrig = maxDashes;
+
+        if (HP > maxHP) HP = maxHP;
+        if (HP <= 0) HP = maxHP;
+
+        if (healthSlider != null)
+        {
+            healthSlider.minValue = 0;
+            healthSlider.maxValue = maxHP;
+            healthSlider.value = HP;
+        }
+
+        UpdateHealthUI();
 
     }
 
@@ -205,6 +223,41 @@ public class playerController : MonoBehaviour
         //Luke's additions
         SoundManager.instance.audioSource.pitch = Random.Range(0.8f, 1);
         SoundManager.instance.audioSource.PlayOneShot(SoundManager.instance.shootSound);
+    }
+
+    void UpdateHealthUI()
+    {
+        if (healthSlider != null)
+        {
+            healthSlider.value = HP;
+        }
+
+        if (healthText != null)
+        {
+            healthText.text = HP + "/" + maxHP;
+        }
+    }
+
+    public void takeDamage(int amount)
+    {
+        HP -= amount;
+        if (HP < 0)
+            HP = 0;
+
+        UpdateHealthUI();
+
+        if (HP <= 0)
+        {
+            Die();
+        }
+    }
+    void Die()
+    {
+        if (GameManager.instance != null)
+        {
+            GameManager.instance.YouLose();
+        }
+
     }
 
 }

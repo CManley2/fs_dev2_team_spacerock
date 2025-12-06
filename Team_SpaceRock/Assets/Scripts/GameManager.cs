@@ -4,39 +4,47 @@ using TMPro;
 
 public class GameManager : MonoBehaviour
 {
-
     public static GameManager instance;
 
-    //menus
     [SerializeField] GameObject menuActive;
     [SerializeField] GameObject menuPause;
     [SerializeField] GameObject menuWin;
     [SerializeField] GameObject menuLose;
 
     [SerializeField] TMP_Text asteroidCounterText;
-
     int asteroidTotal;
-    //player
-    public GameObject player;
-    public playerController playerScript;
-    //is
-    public bool isPaused;
-    //time
-    float timeScaleOrig;
-
     int gameGoalCount;
 
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
+    public GameObject player;
+    public playerController playerScript;
+
+    public bool isPaused;
+    float timeScaleOrig;
+
+    [SerializeField] float gameTimer = 120f;
+    [SerializeField] TextMeshProUGUI timerTextBox;
+    [SerializeField] TextMeshProUGUI scoreTextBox;
+
+    int minutes;
+    int seconds;
+
+    public int score;
+
     void Awake()
     {
         instance = this;
+
         timeScaleOrig = Time.timeScale;
 
+        score = 0;
+
         player = GameObject.FindWithTag("Player");
-        playerScript = player.GetComponent<playerController>();
+        if (player != null)
+        {
+            playerScript = player.GetComponent<playerController>();
+        }
     }
 
-    // Update is called once per frame
     void Update()
     {
         if (Input.GetButtonDown("Cancel"))
@@ -45,31 +53,63 @@ public class GameManager : MonoBehaviour
             {
                 StatePause();
                 menuActive = menuPause;
-                menuActive.SetActive(true);
+                if (menuActive != null)
+                    menuActive.SetActive(true);
             }
             else if (menuActive == menuPause)
             {
                 StateUnpause();
             }
         }
+
+        if (!isPaused)
+        {
+            if (gameTimer > 0f)
+            {
+                gameTimer -= Time.deltaTime;
+                if (gameTimer < 0f)
+                    gameTimer = 0f;
+            }
+        }
+
+        if (timerTextBox != null)
+        {
+            minutes = (int)(gameTimer / 60);
+            seconds = (int)(gameTimer % 60);
+            timerTextBox.text = string.Format("{0:00}:{1:00}", minutes, seconds);
+        }
+
+        if (scoreTextBox != null)
+        {
+            scoreTextBox.text = score.ToString();
+        }
+
+        if (gameTimer <= 0f && !isPaused)
+        {
+            YouLose();
+        }
     }
 
     public void StatePause()
     {
-        isPaused = !isPaused;
-        Time.timeScale = 0;
+        isPaused = true;
+        Time.timeScale = 0f;
         Cursor.visible = true;
-        Cursor.lockState = CursorLockMode.None; //Confined - lock the cursor within the window. None - allows the cursor go outside the window
+        Cursor.lockState = CursorLockMode.None;
     }
 
     public void StateUnpause()
     {
-        isPaused = !isPaused;
+        isPaused = false;
         Time.timeScale = timeScaleOrig;
         Cursor.visible = false;
         Cursor.lockState = CursorLockMode.Locked;
-        menuActive.SetActive(false);
-        menuActive = null;
+
+        if (menuActive != null)
+        {
+            menuActive.SetActive(false);
+            menuActive = null;
+        }
     }
 
     public void UpdateGameGoal(int amount)
@@ -91,7 +131,8 @@ public class GameManager : MonoBehaviour
         {
             StatePause();
             menuActive = menuWin;
-            menuActive.SetActive(true);
+            if (menuActive != null)
+                menuActive.SetActive(true);
         }
     }
 
@@ -99,6 +140,12 @@ public class GameManager : MonoBehaviour
     {
         StatePause();
         menuActive = menuLose;
-        menuActive.SetActive(true);
+        if (menuActive != null)
+            menuActive.SetActive(true);
+    }
+
+    public void UpdateScore(int amount)
+    {
+        score += amount;
     }
 }

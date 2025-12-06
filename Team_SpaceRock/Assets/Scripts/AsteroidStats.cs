@@ -171,6 +171,12 @@ public class Asteroid : MonoBehaviour, IDamage
         if (other.CompareTag("Player"))
         {
             IDamage dmg = other.GetComponent<IDamage>();
+
+            if (dmg == null)
+            {
+                dmg = other.GetComponentInParent<IDamage>();
+            }
+
             if (dmg != null && damageToPlayer > 0)
             {
                 dmg.takeDamage(damageToPlayer);
