@@ -24,11 +24,17 @@ public class Asteroid : MonoBehaviour, IDamage
     [SerializeField] float detectRange = 15f;
     [SerializeField] float chaseSpeedMultiplier = 1.5f;
 
+    [Header("Orbit Settings")]
+    [SerializeField] float orbitRadius = 15f;
+    [SerializeField] float orbitPullStrength = 2f;
+
+    [Header("Player Collision")]
+    [SerializeField] int damageToPlayer = 1;
+
     Rigidbody rb;
 
     Vector3 startPos;
     Quaternion startRot;
-
 
     void Start()
     {
@@ -82,19 +88,58 @@ public class Asteroid : MonoBehaviour, IDamage
     void Update()
     {
         if (rb == null) return;
-        if (GameManager.instance == null) return;
-        if (GameManager.instance.player == null) return;
 
-        Transform playerTransform = GameManager.instance.player.transform;
+        float baseSpeed = GetSpeedForSize();
 
-        Vector3 toPlayer = playerTransform.position - transform.position;
-        float dist = toPlayer.magnitude;
-
-        if (dist <= detectRange)
+        if (GameManager.instance != null && GameManager.instance.player != null)
         {
-            Vector3 dir = toPlayer.normalized;
-            float moveSpeed = GetSpeedForSize() * chaseSpeedMultiplier;
-            rb.linearVelocity = dir * moveSpeed;
+            Transform playerTransform = GameManager.instance.player.transform;
+
+            Vector3 toPlayer = playerTransform.position - transform.position;
+            float dist = toPlayer.magnitude;
+
+            if (dist <= detectRange)
+            {
+                Vector3 dir = toPlayer.normalized;
+                float moveSpeed = baseSpeed * chaseSpeedMultiplier;
+                rb.linearVelocity = dir * moveSpeed;
+                return;
+            }
+        }
+
+        Vector3 toCenter = startPos - transform.position;
+        float distToCenter = toCenter.magnitude;
+
+        if (distToCenter > orbitRadius)
+        {
+            Vector3 dirIn = toCenter.normalized;
+            Vector3 desiredVel = dirIn * baseSpeed;
+
+            rb.linearVelocity = Vector3.Lerp(
+                rb.linearVelocity,
+                desiredVel,
+                orbitPullStrength * Time.deltaTime
+            );
+        }
+        else
+        {
+            Vector3 randomOffset = new Vector3(
+                Random.Range(-0.2f, 0.2f),
+                0f,
+                Random.Range(-0.2f, 0.2f)
+            );
+
+            Vector3 newVel = rb.linearVelocity + randomOffset;
+
+            if (newVel.sqrMagnitude > 0.01f)
+            {
+                newVel = newVel.normalized * baseSpeed;
+                rb.linearVelocity = Vector3.Lerp(
+                    rb.linearVelocity,
+                    newVel,
+                    0.5f * Time.deltaTime
+                );
+            }
         }
     }
 
@@ -118,4 +163,24 @@ public class Asteroid : MonoBehaviour, IDamage
         Destroy(gameObject);
     }
 
+    void OnTriggerEnter(Collider other)
+    {
+        if (other.isTrigger)
+            return;
+
+        if (other.CompareTag("Player"))
+        {
+            IDamage dmg = other.GetComponent<IDamage>();
+            if (dmg != null && damageToPlayer > 0)
+            {
+                dmg.takeDamage(damageToPlayer);
+            }
+
+            if (size != AsteroidSize.XLarge)
+            {
+                Die();
+            }
+        }
+    }
 }
+
