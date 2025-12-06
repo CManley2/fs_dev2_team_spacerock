@@ -23,7 +23,10 @@ public class Projectile : MonoBehaviour
 
         if (dmg != null)
         {
-
+            //Lukes additions
+            SoundManager.instance.audioSource.pitch = Random.Range(0.8f, 1);
+            SoundManager.instance.audioSource.PlayOneShot(SoundManager.instance.impactSound);
+            //--------------------------------------------------------------------------------
             dmg.takeDamage(damage);
             Destroy(gameObject);
 
