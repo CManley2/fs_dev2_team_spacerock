@@ -6,45 +6,78 @@ public class playerController : MonoBehaviour
     [Header("----- Component -----")]
     [SerializeField] CharacterController controller;
 
-    [Header("----- Stats -----")]
-    [Range(1, 5)][SerializeField] int lives;
+    [Header("----- Health & Lives -----")]
+    [SerializeField] int HP;
+    [SerializeField] int maxHP;
 
-    [SerializeField] float moveSpeed = 10f;
-    [SerializeField] float acceleration = 5f;
-    [SerializeField] float deceleration = 10f;
-    [SerializeField] float rollSpeed = 90f;
+    int HPOrig;
+    int maxHPOrig;
+
+    [SerializeField] int lives;
+    [SerializeField] int maxLives;
+
+    int livesOrig;
+    int maxLivesOrig;
+
+    [Header("----- Movement -----")]
+    [SerializeField] float moveSpeed;
+    [SerializeField] float acceleration;
+    [SerializeField] float deceleration;
+    [SerializeField] float rollSpeed;
+
+    float moveSpeedOrig;
 
     [Header("----- Dash -----")]
-    [SerializeField] float dashSpeed = 25f;
-    [SerializeField] float dashDuration = 0.25f;
-    [SerializeField] float dashCooldown = 5f;
-
+    [SerializeField] float dashSpeed;
+    [SerializeField] float dashDuration;
+    [SerializeField] float dashCooldown;
+    [SerializeField] int maxDashes; 
+    
+    float dashCooldownTimer;
     bool isDashing = false;
     float dashTimer = 0f;
-    float dashCooldownTimer = 0f;
+
+    float dashCooldownOrig;
+    int maxDashesOrig;
 
     [Header("----- Guns -----")]
     [SerializeField] int shootDamage;
     [SerializeField] float shootRate;
+    [SerializeField] public float projectileSpeed;
     float shootTimer;
 
-    public GameObject Bullet;
+    [SerializeField] public GameObject Bullet;
     public Transform RightFirePoint;
     public Transform LeftFirePoint;
     bool fireSwitch = true;
-
-    public float projectileSpeed;
 
     Vector3 currentVelocity;
     Vector3 inputDir;
 
     float rollAngle = 0f;  // <<< persistent roll
 
+    private void Start()
+    {
+        HPOrig = HP;
+        maxHPOrig = maxHP;
+
+        livesOrig = lives;
+        maxLivesOrig = maxLives;
+
+        moveSpeedOrig = moveSpeed;
+
+        dashCooldownOrig = dashCooldown;
+        maxDashesOrig = maxDashes;
+
+    }
+
     void Update()
     {
         movement();
         dash();
-        rotation();
+
+        //Q & E Rotation bugs camera with duplicate visuals somehow, need to bug test further later
+        //rotation();
     }
 
     // ---------------------------------------
