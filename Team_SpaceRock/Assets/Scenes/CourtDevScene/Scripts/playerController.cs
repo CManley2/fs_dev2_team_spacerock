@@ -4,7 +4,6 @@ using TMPro;
 
 public class playerController : MonoBehaviour, IDamage
 {
-
     [Header("----- Component -----")]
     [SerializeField] CharacterController controller;
 
@@ -21,10 +20,6 @@ public class playerController : MonoBehaviour, IDamage
     int livesOrig;
     int maxLivesOrig;
 
-    [Header("----- Health UI -----")]
-    [SerializeField] Slider healthSlider;
-    [SerializeField] TMP_Text healthText;
-
     [Header("----- Movement -----")]
     [SerializeField] float moveSpeed;
     [SerializeField] float acceleration;
@@ -37,8 +32,8 @@ public class playerController : MonoBehaviour, IDamage
     [SerializeField] float dashSpeed;
     [SerializeField] float dashDuration;
     [SerializeField] float dashCooldown;
-    [SerializeField] int maxDashes; 
-    
+    [SerializeField] int maxDashes;
+
     float dashCooldownTimer;
     bool isDashing = false;
     float dashTimer = 0f;
@@ -60,12 +55,13 @@ public class playerController : MonoBehaviour, IDamage
     Vector3 currentVelocity;
     Vector3 inputDir;
 
-    float rollAngle = 0f;  // <<< persistent roll
+    float rollAngle = 0f;  // persistent roll
 
     private void Start()
     {
         HPOrig = HP;
         maxHPOrig = maxHP;
+        updatePlayerUI();
 
         livesOrig = lives;
         maxLivesOrig = maxLives;
@@ -77,16 +73,6 @@ public class playerController : MonoBehaviour, IDamage
 
         if (HP > maxHP) HP = maxHP;
         if (HP <= 0) HP = maxHP;
-
-        if (healthSlider != null)
-        {
-            healthSlider.minValue = 0;
-            healthSlider.maxValue = maxHP;
-            healthSlider.value = HP;
-        }
-
-        UpdateHealthUI();
-
     }
 
     void Update()
@@ -167,7 +153,6 @@ public class playerController : MonoBehaviour, IDamage
 
         // Apply rotation
         controller.transform.Rotate(0, 0, rollAngle);
-
     }
 
     // ---------------------------------------
@@ -225,39 +210,34 @@ public class playerController : MonoBehaviour, IDamage
         SoundManager.instance.audioSource.PlayOneShot(SoundManager.instance.shootSound);
     }
 
-    void UpdateHealthUI()
-    {
-        if (healthSlider != null)
-        {
-            healthSlider.value = HP;
-        }
-
-        if (healthText != null)
-        {
-            healthText.text = HP + "/" + maxHP;
-        }
-    }
-
+    // ---------------------------------------
+    // DAMAGE / DEATH
+    // ---------------------------------------
     public void takeDamage(int amount)
     {
         HP -= amount;
+        updatePlayerUI();
+
         if (HP < 0)
             HP = 0;
-
-        UpdateHealthUI();
 
         if (HP <= 0)
         {
             Die();
         }
     }
+
+    public void updatePlayerUI()
+    {
+        GameManager.instance.playerHPBar.fillAmount = (float)HP / maxHP;
+
+    }
+
     void Die()
     {
         if (GameManager.instance != null)
         {
             GameManager.instance.YouLose();
         }
-
     }
-
 }

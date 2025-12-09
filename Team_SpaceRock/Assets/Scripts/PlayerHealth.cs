@@ -9,20 +9,11 @@ public class PlayerHealth : MonoBehaviour, IDamage
     int currentHP;
 
     [Header("UI")]
-    [SerializeField] Slider healthSlider;
     [SerializeField] TMP_Text healthText;
 
     void Start()
     {
         currentHP = maxHP;
-
-        if (healthSlider != null)
-        {
-            healthSlider.minValue = 0;
-            healthSlider.maxValue = maxHP;
-            healthSlider.value = maxHP;
-        }
-
         UpdateUI();
     }
 
@@ -41,11 +32,6 @@ public class PlayerHealth : MonoBehaviour, IDamage
 
     void UpdateUI()
     {
-        if (healthSlider != null)
-        {
-            healthSlider.value = currentHP;
-        }
-
         if (healthText != null)
         {
             healthText.text = currentHP + "/" + maxHP;
